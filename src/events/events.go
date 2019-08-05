@@ -43,8 +43,8 @@ func NewEvents(botAgentFile string, subreddits []string, searchText string) {
 // Listens on Posts per defined subreddit via graw config
 func (r *utilsBot) Post(p *reddit.Post) error {
 	if strings.Contains(p.SelfText, "remind me now") {
-		<-time.After(2 * time.Second) // Buffer
-		r.mqttClient.Client.Publish(r.mqttClient.Topic, 0, true, []byte(p.Title))
+		<-time.After(2 * time.Second)                                           // Buffer
+		r.mqttClient.Client.Publish(r.mqttClient.Topic, 0, true, []byte(p.URL)) // Publish source URL
 	}
 	return nil
 }

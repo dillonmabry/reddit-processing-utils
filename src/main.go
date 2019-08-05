@@ -8,8 +8,8 @@ import (
 
 	"github.com/dillonmabry/reddit-comments-util/src/batch"
 	"github.com/dillonmabry/reddit-comments-util/src/config"
-	events "github.com/dillonmabry/reddit-comments-util/src/events"
-	fileutils "github.com/dillonmabry/reddit-comments-util/src/fileutils"
+	"github.com/dillonmabry/reddit-comments-util/src/events"
+	"github.com/dillonmabry/reddit-comments-util/src/fileutils"
 	graw "github.com/turnage/graw/reddit"
 	"github.com/urfave/cli"
 )

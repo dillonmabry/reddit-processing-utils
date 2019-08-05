@@ -22,7 +22,7 @@ var f MQTT.MessageHandler = func(client MQTT.Client, msg MQTT.Message) {
 // NewDistributed create a distributed client to publish events to broker
 // brokerURL: broker to connect
 func NewDistributed(brokerURL string, topic string) Client {
-	opts := MQTT.NewClientOptions().AddBroker(brokerURL)
+	opts := MQTT.NewClientOptions().AddBroker("tcp://" + brokerURL)
 	opts.SetClientID("mac-go")
 	opts.SetDefaultPublishHandler(f)
 
