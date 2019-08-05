@@ -18,3 +18,5 @@
 *.agent
 # Loose text files
 **/*.txt
+# Loose csv files
+**/*.csv

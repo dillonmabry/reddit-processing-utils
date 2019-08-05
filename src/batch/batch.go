@@ -2,24 +2,29 @@
 package batch
 
 import (
+	"regexp"
 	"sync"
 
 	"github.com/turnage/graw/reddit"
-	graw "github.com/turnage/graw/reddit"
+	gwrap "github.com/turnage/graw/reddit"
 )
 
-// GetAllReplies to get all comments of a particular thread
-// bot: reddit Bot, thread: thread, c: channel, top: max posts
-func GetAllReplies(bot graw.Bot, thread string, c chan graw.Comment, top int, wg *sync.WaitGroup) {
-	harvest, err := bot.Thread(thread)
+// NewBatch creates batch style handler for graw bot interactions
+// botAgentFile: the name of the bot agent file to use
+func NewBatch(botAgentFile string) gwrap.Bot {
+	bot, err := reddit.NewBotFromAgentFile(botAgentFile, 0)
 	if err != nil {
 		panic(err)
 	}
+	return bot
+}
 
-	if top != 0 {
-		for _, comment := range harvest.Replies[:top] {
-			c <- *comment
-		}
+// GetAllReplies to get all comments of a particular thread
+// bot: reddit Bot, thread: thread, c: channel, wg WaitGroup ref
+func GetAllReplies(bot gwrap.Bot, thread string, c chan gwrap.Comment, wg *sync.WaitGroup) {
+	harvest, err := bot.Thread(thread)
+	if err != nil {
+		panic(err)
 	}
 
 	// Separating these into goroutines does not help performance
@@ -32,12 +37,32 @@ func GetAllReplies(bot graw.Bot, thread string, c chan graw.Comment, top int, wg
 	defer wg.Done()
 }
 
-// NewBatch creates batch style handler for graw bot interactions
-// botAgentFile: the name of the bot agent file to use
-func NewBatch(botAgentFile string) graw.Bot {
-	bot, err := reddit.NewBotFromAgentFile(botAgentFile, 0)
+// findMatches filters via regex into designated channel
+// regex: reference to regex compiler, text: text to match, c: channel
+func findMatches(regex *regexp.Regexp, text string, c chan []string) {
+	matches := regex.FindAllStringSubmatch(text, -1)
+	for m := range matches {
+		c <- []string{matches[m][1]}
+	}
+}
+
+// GetFilteredReplies to get all comments of a particular thread
+// bot: reddit Bot, thread: thread, c: channel, searchPattern regexp, wg WaitGroup ref
+func GetFilteredReplies(bot gwrap.Bot, thread string, c chan []string, searchPattern string, wg *sync.WaitGroup) {
+	harvest, err := bot.Thread(thread)
 	if err != nil {
 		panic(err)
 	}
-	return bot
+	r, err := regexp.Compile("(?i)" + searchPattern)
+	if err != nil {
+		panic(err)
+	}
+
+	for _, comment := range harvest.Replies {
+		for _, comment := range comment.Replies {
+			findMatches(r, comment.Body, c)
+		}
+		findMatches(r, comment.Body, c)
+	}
+	defer wg.Done()
 }
