@@ -61,7 +61,7 @@ func main() {
 	app.Name = "Reddit Comments Utility CLI"
 	app.Usage = "Allows batch export of reddit comments and event listening for subreddits"
 
-	var flags = []cli.Flag{
+	var batchFlags = []cli.Flag{
 		cli.StringFlag{
 			Name:  "subreddit",
 			Value: "",
@@ -71,27 +71,37 @@ func main() {
 			Value: "",
 		},
 	}
+	var eventsFlags = []cli.Flag{
+		cli.StringFlag{
+			Name:  "subreddits",
+			Value: "",
+		},
+		cli.StringFlag{
+			Name:  "searchText",
+			Value: "",
+		},
+	}
 	app.Commands = []cli.Command{
 		{
 			Name:  "batch",
 			Usage: "Export multiple reddit threads to single .txt file",
-			Flags: flags,
+			Flags: batchFlags,
 			Action: func(c *cli.Context) error {
 				threads := strings.Split(c.String("threads"), ",")
 				exportCommentsTxt(c.String("subreddit"), threads)
 				return nil
 			},
 		},
-		// {
-		// 	Name:  "event",
-		// 	Usage: "Listen to specified search string from multiple subreddits then notify",
-		// 	Flags: flags,
-		// 	Action: func(c *cli.Context) error {
-		// 		subreddits := strings.Split(c.String("subreddits"), ",")
-		// 		subRedditsListener(subreddits, c.String("searchText"))
-		// 		return nil
-		// 	},
-		// },
+		{
+			Name:  "events",
+			Usage: "Listen to specified search string from multiple subreddits then notify",
+			Flags: eventsFlags,
+			Action: func(c *cli.Context) error {
+				subreddits := strings.Split(c.String("subreddits"), ",")
+				subRedditsListener(subreddits, c.String("searchText"))
+				return nil
+			},
+		},
 	}
 
 	err := app.Run(os.Args)

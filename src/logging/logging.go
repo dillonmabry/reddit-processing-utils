@@ -1,5 +1,5 @@
-// Log wrapper for Logrus standard logger: https://github.com/sirupsen/logrus
-package logwrapper
+// Package logging for Logrus standard logger: https://github.com/sirupsen/logrus
+package logging
 
 import (
 	"github.com/sirupsen/logrus"

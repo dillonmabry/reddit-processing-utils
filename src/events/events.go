@@ -8,43 +8,48 @@ import (
 	"strings"
 	"time"
 
-	"github.com/dillonmabry/reddit-comments-util/src/config"
 	distributed "github.com/dillonmabry/reddit-comments-util/src/distributed"
+	logging "github.com/dillonmabry/reddit-comments-util/src/logging"
 	"github.com/turnage/graw"
 	"github.com/turnage/graw/reddit"
 )
 
-type utilsBot struct {
+type searchBot struct {
 	bot        reddit.Bot
 	mqttClient distributed.Client
+	searchText string
 }
 
 // NewEvents initialize the graw listener per wrapper
 // Based on graw wrapper docs will listen using Go related techniques to check for posts of a subreddit
-// Example: events.Init([]string{"bottesting", "science"}, "remind me")
+// botAgentFile: bot agent local, subreddits: subreddits, searchText: text contains
 func NewEvents(botAgentFile string, subreddits []string, searchText string) {
-	mqttClient := distributed.NewDistributed(config.MQTTBroker(), "topic/test")
+	logger := logging.NewLogger()
+	mqttClient := distributed.NewDistributed("tcp://192.168.1.220:1883", "topic/test")
 	bot, err := reddit.NewBotFromAgentFile(botAgentFile, 0)
+
 	if err != nil {
+		logger.Error(err)
 		panic(err)
 	} else {
 		cfg := graw.Config{Subreddits: subreddits}
-		handler := &utilsBot{bot: bot, mqttClient: mqttClient}
-		fmt.Println(fmt.Sprintf("Started bot handler for subreddits: %v", cfg.Subreddits))
+		handler := &searchBot{bot: bot, mqttClient: mqttClient, searchText: searchText}
+		logger.Info(fmt.Sprintf("Started bot handler for subreddits: %v", cfg.Subreddits))
 		if _, wait, err := graw.Run(handler, bot, cfg); err != nil {
+			logger.Error(err)
 			panic(err)
 		} else {
-			fmt.Println("graw run failed: ", wait())
+			logger.Info("graw run failed: ", wait())
 		}
 	}
 }
 
 // Implement the interface per graw
 // Listens on Posts per defined subreddit via graw config
-func (r *utilsBot) Post(p *reddit.Post) error {
-	if strings.Contains(p.SelfText, "remind me now") {
-		<-time.After(2 * time.Second)                                           // Buffer
-		r.mqttClient.Client.Publish(r.mqttClient.Topic, 0, true, []byte(p.URL)) // Publish source URL
+func (r *searchBot) Post(p *reddit.Post) error {
+	if strings.Contains(p.SelfText, r.searchText) {
+		<-time.After(2 * time.Second)                                                // Buffer
+		r.mqttClient.Client.Publish(r.mqttClient.Topic, 0, true, []byte(p.SelfText)) // Publish source URL
 	}
 	return nil
 }
