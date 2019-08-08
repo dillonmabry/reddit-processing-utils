@@ -1,1 +1,1 @@
-start set GRAW_BOT_AGENT=localbot.agent & set GRAW_BOT_SUBREDDITS=bottesting,science & go run src/events/exec/main.go events --subreddits bottesting,science --searchText remindmenow
+start set GRAW_BOT_AGENT=localbot.agent & go run src/events/exec/main.go events --subreddits bottesting,science --searchText remindmenow

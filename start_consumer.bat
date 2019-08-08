@@ -1,1 +1,1 @@
-start set GRAW_BOT_AGENT=localbot.agent & set GRAW_BOT_SUBREDDITS=bottesting,science & go run src/consumer/exec/main.go
+start go run src/consumer/exec/main.go

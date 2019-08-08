@@ -10,8 +10,7 @@ type PostMessage struct {
 // SavePostMessage save post
 //TODO: Add logging
 func SavePostMessage(postMessage PostMessage) error {
-	var id int
-	err := db.QueryRow(`INSERT INTO posts (url, text) VALUES ($1, $2) RETURNING id`, postMessage.URL, postMessage.Text).Scan(&id)
+	_, err := db.Exec(`INSERT INTO posts (url, text) VALUES ($1, $2) RETURNING id`, postMessage.URL, postMessage.Text)
 	if err != nil {
 		return err
 	}

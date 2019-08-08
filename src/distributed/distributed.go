@@ -1,5 +1,4 @@
 // Package distributed interactions with Mosquitto MQTT message broker services
-// TODO: Setup interactions with mosquitto MQTT with events sourcing
 package distributed
 
 import (
@@ -7,25 +6,25 @@ import (
 	MQTT "github.com/eclipse/paho.mqtt.golang"
 )
 
-// Client general client for MQTT
+// Client general for MQTT
 type Client struct {
 	Client MQTT.Client
 	Topic  string
 }
 
 // NewDistributed create a distributed client to publish events to broker
-// brokerURL: broker to connect, topic: topic to publish to
-func NewDistributed(brokerURL string, topic string, msgHandler MQTT.MessageHandler) Client {
+// brokerURL: broker to connect, topic: topic to publish to, handler: function handler for publishing
+func NewDistributed(brokerURL string, topic string, handler MQTT.MessageHandler) *Client {
 	logger := logging.NewLogger()
 	opts := MQTT.NewClientOptions().AddBroker(brokerURL)
-	//opts.SetClientID("mac-go")
-	opts.SetDefaultPublishHandler(msgHandler)
+	opts.SetDefaultPublishHandler(handler)
 
 	client := MQTT.NewClient(opts)
 	if token := client.Connect(); token.Wait() && token.Error() != nil {
 		logger.Fatal("Could not connect publishing client")
-	} else {
-		logger.Info("Connected to broker service")
+		return nil
 	}
-	return Client{Client: client, Topic: topic}
+	logger.Info("Connected to broker service")
+	distClient := Client{Client: client, Topic: topic}
+	return &distClient
 }

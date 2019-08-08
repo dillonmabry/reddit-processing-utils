@@ -1,6 +1,7 @@
 --DB Seed
 CREATE DATABASE reddit;
 
+--Admin Service Acct
 CREATE USER admin WITH ENCRYPTED PASSWORD 'admin';
 GRANT ALL PRIVILEGES ON DATABASE reddit TO admin;
 GRANT ALL PRIVILEGES ON TABLE posts TO admin;

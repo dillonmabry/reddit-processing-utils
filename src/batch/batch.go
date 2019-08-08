@@ -31,7 +31,6 @@ func GetAllReplies(bot gwrap.Bot, thread string, c chan gwrap.Comment, wg *sync.
 		panic(err)
 	}
 
-	// Separating these into goroutines does not help performance
 	for _, comment := range harvest.Replies {
 		for _, comment := range comment.Replies {
 			c <- *comment

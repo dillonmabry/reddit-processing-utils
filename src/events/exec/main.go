@@ -9,12 +9,6 @@ import (
 	"github.com/urfave/cli"
 )
 
-// subredditsListener listens to multiple subreddits for specific post content
-// subreddits: subreddits, searchText: text to listen for inside a specific post body
-func subRedditsListener(subreddits []string, searchText string) {
-	events.NewEvents(config.BotAgentFile(), subreddits, searchText)
-}
-
 func main() {
 	app := cli.NewApp()
 	app.Name = "Reddit Comments Utility - Events CLI"
@@ -37,7 +31,7 @@ func main() {
 			Flags: flags,
 			Action: func(c *cli.Context) error {
 				subreddits := strings.Split(c.String("subreddits"), ",")
-				subRedditsListener(subreddits, c.String("searchText"))
+				events.NewEvents(config.BotAgentFile(), subreddits, c.String("searchText"))
 				return nil
 			},
 		},

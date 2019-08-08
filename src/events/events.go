@@ -6,7 +6,6 @@ package events
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"strings"
 	"time"
 
@@ -18,23 +17,25 @@ import (
 	"github.com/turnage/graw/reddit"
 )
 
+var logger = logging.NewLogger()
+
 // searchBot bot for events sourcing
 type searchBot struct {
 	bot        reddit.Bot
-	mqttClient distributed.Client
+	mqttClient *distributed.Client
 	searchText string
 }
 
 var f MQTT.MessageHandler = func(client MQTT.Client, msg MQTT.Message) {
-	log.Println(fmt.Sprintf("TOPIC: %s\n", msg.Topic()))
-	log.Println(fmt.Sprintf("MSG: %s\n", msg.Payload()))
+	logger.Info(fmt.Sprintf("TOPIC: %s\n", msg.Topic()))
+	logger.Info(fmt.Sprintf("MSG: %s\n", msg.Payload()))
 }
 
 // NewEvents initialize the graw listener per wrapper
 // Based on graw wrapper docs will listen using Go related techniques to check for posts of a subreddit
 // botAgentFile: bot agent local, subreddits: subreddits, searchText: text contains
 func NewEvents(botAgentFile string, subreddits []string, searchText string) {
-	logger := logging.NewLogger()
+	//TODO: Make topic selection generic
 	mqttClient := distributed.NewDistributed("tcp://192.168.1.220:1883", "topic/test", f)
 
 	bot, err := reddit.NewBotFromAgentFile(botAgentFile, 0)
@@ -60,9 +61,11 @@ func (r *searchBot) Post(p *reddit.Post) error {
 		message := datamanager.PostMessage{URL: p.URL, Text: p.SelfText}
 		messageJSON, err := json.Marshal(message)
 		if err != nil {
-			log.Println(fmt.Sprintf("Error converting to JSON for Reddit post %s", p.URL))
+			logger.Error(fmt.Sprintf("Error converting to JSON for Reddit post %s", p.URL))
 		}
-		r.mqttClient.Client.Publish(r.mqttClient.Topic, 0, false, messageJSON) // Publish URL and Body Text
+		if token := r.mqttClient.Client.Publish(r.mqttClient.Topic, 0, false, messageJSON); token.Wait() && token.Error() != nil {
+			logger.Fatal(token.Error())
+		}
 	}
 	return nil
 }
