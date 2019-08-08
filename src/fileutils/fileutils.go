@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"os"
 
-	graw "github.com/turnage/graw/reddit"
+	"github.com/turnage/graw/reddit"
 )
 
 // WriteTextOutput to write txt output based on a channel to a file
 // fileName: name of write to write to, c: channel
-func WriteTextOutput(fileName string, c chan graw.Comment) {
+func WriteTextOutput(fileName string, c chan reddit.Comment) {
 	fname := fmt.Sprintf("%s%s", fileName, ".txt")
 	f, err := os.OpenFile(fname, os.O_CREATE|os.O_RDWR|os.O_APPEND, 0666)
 	if err != nil {

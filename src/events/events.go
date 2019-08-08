@@ -4,20 +4,30 @@
 package events
 
 import (
+	"encoding/json"
 	"fmt"
+	"log"
 	"strings"
 	"time"
 
-	distributed "github.com/dillonmabry/reddit-comments-util/src/distributed"
-	logging "github.com/dillonmabry/reddit-comments-util/src/logging"
+	"github.com/dillonmabry/reddit-comments-util/src/datamanager"
+	"github.com/dillonmabry/reddit-comments-util/src/distributed"
+	"github.com/dillonmabry/reddit-comments-util/src/logging"
+	MQTT "github.com/eclipse/paho.mqtt.golang"
 	"github.com/turnage/graw"
 	"github.com/turnage/graw/reddit"
 )
 
+// searchBot bot for events sourcing
 type searchBot struct {
 	bot        reddit.Bot
 	mqttClient distributed.Client
 	searchText string
+}
+
+var f MQTT.MessageHandler = func(client MQTT.Client, msg MQTT.Message) {
+	log.Println(fmt.Sprintf("TOPIC: %s\n", msg.Topic()))
+	log.Println(fmt.Sprintf("MSG: %s\n", msg.Payload()))
 }
 
 // NewEvents initialize the graw listener per wrapper
@@ -25,19 +35,17 @@ type searchBot struct {
 // botAgentFile: bot agent local, subreddits: subreddits, searchText: text contains
 func NewEvents(botAgentFile string, subreddits []string, searchText string) {
 	logger := logging.NewLogger()
-	mqttClient := distributed.NewDistributed("tcp://192.168.1.220:1883", "topic/test")
-	bot, err := reddit.NewBotFromAgentFile(botAgentFile, 0)
+	mqttClient := distributed.NewDistributed("tcp://192.168.1.220:1883", "topic/test", f)
 
+	bot, err := reddit.NewBotFromAgentFile(botAgentFile, 0)
 	if err != nil {
-		logger.Error(err)
-		panic(err)
+		logger.Fatal("Could not create bot agent from file")
 	} else {
 		cfg := graw.Config{Subreddits: subreddits}
 		handler := &searchBot{bot: bot, mqttClient: mqttClient, searchText: searchText}
-		logger.Info(fmt.Sprintf("Started bot handler for subreddits: %v", cfg.Subreddits))
+		logger.Info(fmt.Sprintf("Started bot handler for subreddits: %v", strings.Join(cfg.Subreddits, ",")))
 		if _, wait, err := graw.Run(handler, bot, cfg); err != nil {
-			logger.Error(err)
-			panic(err)
+			logger.Fatal("Graw run failed from handler setup")
 		} else {
 			logger.Info("graw run failed: ", wait())
 		}
@@ -48,8 +56,13 @@ func NewEvents(botAgentFile string, subreddits []string, searchText string) {
 // Listens on Posts per defined subreddit via graw config
 func (r *searchBot) Post(p *reddit.Post) error {
 	if strings.Contains(p.SelfText, r.searchText) {
-		<-time.After(2 * time.Second)                                                // Buffer
-		r.mqttClient.Client.Publish(r.mqttClient.Topic, 0, true, []byte(p.SelfText)) // Publish source URL
+		<-time.After(2 * time.Second) // Buffer
+		message := datamanager.PostMessage{URL: p.URL, Text: p.SelfText}
+		messageJSON, err := json.Marshal(message)
+		if err != nil {
+			log.Println(fmt.Sprintf("Error converting to JSON for Reddit post %s", p.URL))
+		}
+		r.mqttClient.Client.Publish(r.mqttClient.Topic, 0, false, messageJSON) // Publish URL and Body Text
 	}
 	return nil
 }

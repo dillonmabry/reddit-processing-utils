@@ -5,6 +5,7 @@ import (
 	"regexp"
 	"sync"
 
+	"github.com/dillonmabry/reddit-comments-util/src/logging"
 	"github.com/turnage/graw/reddit"
 	gwrap "github.com/turnage/graw/reddit"
 )
@@ -12,10 +13,13 @@ import (
 // NewBatch creates batch style handler for graw bot interactions
 // botAgentFile: the name of the bot agent file to use
 func NewBatch(botAgentFile string) gwrap.Bot {
+	logger := logging.NewLogger()
 	bot, err := reddit.NewBotFromAgentFile(botAgentFile, 0)
 	if err != nil {
+		logger.Error("Could not create bot agent from file")
 		panic(err)
 	}
+	logger.Info("Started bot for batch processing")
 	return bot
 }
 

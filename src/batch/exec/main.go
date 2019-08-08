@@ -8,9 +8,8 @@ import (
 
 	"github.com/dillonmabry/reddit-comments-util/src/batch"
 	"github.com/dillonmabry/reddit-comments-util/src/config"
-	"github.com/dillonmabry/reddit-comments-util/src/events"
 	"github.com/dillonmabry/reddit-comments-util/src/fileutils"
-	graw "github.com/turnage/graw/reddit"
+	"github.com/turnage/graw/reddit"
 	"github.com/urfave/cli"
 )
 
@@ -20,7 +19,7 @@ func exportCommentsTxt(subreddit string, threads []string) {
 	var wg sync.WaitGroup
 	bot := batch.NewBatch(config.BotAgentFile())
 
-	c := make(chan graw.Comment)
+	c := make(chan reddit.Comment)
 	go fileutils.WriteTextOutput("testfile", c)
 	wg.Add(len(threads))
 	for _, thread := range threads {
@@ -50,18 +49,12 @@ func exportCommentsCsv(subreddit string, threads []string, headers []string, sea
 	close(c)
 }
 
-// subredditsListener listens to multiple subreddits for specific post content
-// subreddits: subreddits, searchText: text to listen for inside a specific post body
-func subRedditsListener(subreddits []string, searchText string) {
-	events.NewEvents(config.BotAgentFile(), subreddits, searchText)
-}
-
 func main() {
 	app := cli.NewApp()
-	app.Name = "Reddit Comments Utility CLI"
-	app.Usage = "Allows batch export of reddit comments and event listening for subreddits"
+	app.Name = "Reddit Comments Utility - Batch CLI"
+	app.Usage = "Allows batch-type functionality of Reddit API including comments, search, and more"
 
-	var batchFlags = []cli.Flag{
+	var flags = []cli.Flag{
 		cli.StringFlag{
 			Name:  "subreddit",
 			Value: "",
@@ -71,34 +64,14 @@ func main() {
 			Value: "",
 		},
 	}
-	var eventsFlags = []cli.Flag{
-		cli.StringFlag{
-			Name:  "subreddits",
-			Value: "",
-		},
-		cli.StringFlag{
-			Name:  "searchText",
-			Value: "",
-		},
-	}
 	app.Commands = []cli.Command{
 		{
 			Name:  "batch",
 			Usage: "Export multiple reddit threads to single .txt file",
-			Flags: batchFlags,
+			Flags: flags,
 			Action: func(c *cli.Context) error {
 				threads := strings.Split(c.String("threads"), ",")
 				exportCommentsTxt(c.String("subreddit"), threads)
-				return nil
-			},
-		},
-		{
-			Name:  "events",
-			Usage: "Listen to specified search string from multiple subreddits then notify",
-			Flags: eventsFlags,
-			Action: func(c *cli.Context) error {
-				subreddits := strings.Split(c.String("subreddits"), ",")
-				subRedditsListener(subreddits, c.String("searchText"))
 				return nil
 			},
 		},
