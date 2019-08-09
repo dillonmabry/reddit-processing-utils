@@ -16,11 +16,11 @@ Run manually:
 
 Event listener
 ```
-export GRAW_BOT_AGENT=localbot.agent && go run src/events/exec/main.go events --subreddits AskReddit,science --searchText <your text you wish to search>
+export GRAW_BOT_AGENT=localbot.agent && go run src/events/exec/main.go events --subreddits <subreddits comma separated> --searchText <search text inside post body> --topic <topic, must match consumer>
 ```
 
 Consumer
 ```
-go run src/consumer/exec/main.go
+go run src/consumer/exec/main.go --topic <topic, must match listener/publisher>
 ```
 ## Tests

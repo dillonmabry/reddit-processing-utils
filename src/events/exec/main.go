@@ -23,6 +23,10 @@ func main() {
 			Name:  "searchText",
 			Value: "",
 		},
+		cli.StringFlag{
+			Name:  "topic",
+			Value: "",
+		},
 	}
 	app.Commands = []cli.Command{
 		{
@@ -31,7 +35,7 @@ func main() {
 			Flags: flags,
 			Action: func(c *cli.Context) error {
 				subreddits := strings.Split(c.String("subreddits"), ",")
-				events.NewEvents(config.BotAgentFile(), subreddits, c.String("searchText"))
+				events.NewEvents(config.BotAgentFile(), c.String("topic"), subreddits, c.String("searchText"))
 				return nil
 			},
 		},

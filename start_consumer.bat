@@ -1,1 +1,1 @@
-start go run src/consumer/exec/main.go
+start go run src/consumer/exec/main.go --topic test

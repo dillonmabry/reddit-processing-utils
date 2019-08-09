@@ -33,10 +33,9 @@ var f MQTT.MessageHandler = func(client MQTT.Client, msg MQTT.Message) {
 
 // NewEvents initialize the graw listener per wrapper
 // Based on graw wrapper docs will listen using Go related techniques to check for posts of a subreddit
-// botAgentFile: bot agent local, subreddits: subreddits, searchText: text contains
-func NewEvents(botAgentFile string, subreddits []string, searchText string) {
-	//TODO: Make topic selection generic
-	mqttClient := distributed.NewDistributed("tcp://192.168.1.220:1883", "topic/test", f)
+// botAgentFile: bot agent local, topic: topic of events publisher, subreddits: subreddits, searchText: text contains
+func NewEvents(botAgentFile string, topic string, subreddits []string, searchText string) {
+	mqttClient := distributed.NewDistributed("tcp://192.168.1.220:1883", topic, f)
 
 	bot, err := reddit.NewBotFromAgentFile(botAgentFile, 0)
 	if err != nil {

@@ -2,6 +2,8 @@
 package distributed
 
 import (
+	"fmt"
+
 	"github.com/dillonmabry/reddit-comments-util/src/logging"
 	MQTT "github.com/eclipse/paho.mqtt.golang"
 )
@@ -24,7 +26,7 @@ func NewDistributed(brokerURL string, topic string, handler MQTT.MessageHandler)
 		logger.Fatal("Could not connect publishing client")
 		return nil
 	}
-	logger.Info("Connected to broker service")
+	logger.Info(fmt.Sprintf("Connected to broker service via topic: %s", topic))
 	distClient := Client{Client: client, Topic: topic}
 	return &distClient
 }
