@@ -3,45 +3,69 @@ package main
 import (
 	"encoding/json"
 	"flag"
-	"time"
+	"fmt"
+	"os"
 
+	"github.com/streadway/amqp"
+
+	"github.com/dillonmabry/reddit-comments-util/src/config"
 	"github.com/dillonmabry/reddit-comments-util/src/datamanager"
 	"github.com/dillonmabry/reddit-comments-util/src/distributed"
 	"github.com/dillonmabry/reddit-comments-util/src/logging"
-	MQTT "github.com/eclipse/paho.mqtt.golang"
 )
 
 var logger = logging.NewLogger()
 
-var f MQTT.MessageHandler = func(client MQTT.Client, msg MQTT.Message) {
+// saveMessage persist message to db
+func saveMessage(msg []byte) error {
 	var postMessage datamanager.PostMessage
-	if err := json.Unmarshal(msg.Payload(), &postMessage); err != nil {
-		logger.Error("Error converting payload to message struct")
+	if err := json.Unmarshal(msg, &postMessage); err != nil {
+		return err
 	}
-	exists, err := datamanager.IsPostExist(postMessage.URL)
-	if err != nil {
-		logger.Error("Error checking if post exists")
+	saveErr := datamanager.SavePostMessage(&postMessage)
+	if saveErr != nil {
+		return saveErr
 	}
-	if exists != true {
-		datamanager.SavePostMessage(&postMessage)
+	return nil
+}
+
+// handleMessages handler for main goroutine for receiving messages
+func handleMessages(msgs <-chan amqp.Delivery, done chan error) {
+	for m := range msgs {
+		err := saveMessage(m.Body)
+		if err != nil {
+			logger.Error(err)
+			m.Nack(false, false)
+		}
+		m.Ack(false)
 	}
+	logger.Info("handleMessages: messages channel closed")
+	done <- nil
+}
+
+func init() {
+	datamanager.InitDB("host=localhost port=5432 user=admin password=admin dbname=reddit sslmode=disable")
 }
 
 func main() {
-	datamanager.InitDB("host=localhost port=5432 user=admin password=admin dbname=reddit sslmode=disable")
-	topic := flag.String("topic", "", "Specifies topic to consume and persist posts")
+	queue := flag.String("queue", "", "Specifies queue to consume and persist posts")
 	flag.Parse()
-	c := distributed.NewDistributed("tcp://192.168.1.220:1883", *topic, f)
+	c := distributed.NewDistributed(config.DefaultBroker(), *queue)
 
-	if token := c.Client.Subscribe(c.Topic, 0, nil); token.Wait() && token.Error() != nil {
-		logger.Fatal(token.Error())
+	msgs, err := c.Channel.Consume(
+		c.Queue.Name, // queue string
+		"",           // consumer string
+		false,        // autoAck bool
+		false,        // exclusive bool
+		false,        // noLocal bool
+		false,        //noWait bool
+		nil,          // args amqp.Table
+	)
+	if err != nil {
+		logger.Fatal(fmt.Sprintf("Could not connect to consume for queue %s", c.Queue.Name))
 	}
 
-	done := make(chan bool)
-	go func() {
-		for {
-			time.Sleep(time.Second)
-		}
-	}()
-	<-done
+	done := make(chan error)
+	handleMessages(msgs, done)
+	defer os.Exit(0)
 }

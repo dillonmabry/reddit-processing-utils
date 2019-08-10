@@ -1,48 +1,21 @@
 package main
 
 import (
+	"flag"
 	"os"
 	"strings"
 
 	"github.com/dillonmabry/reddit-comments-util/src/config"
 	"github.com/dillonmabry/reddit-comments-util/src/events"
-	"github.com/urfave/cli"
 )
 
 func main() {
-	app := cli.NewApp()
-	app.Name = "Reddit Comments Utility - Events CLI"
-	app.Usage = "Allows event-based listening via Reddit with different functions"
+	subreddits := flag.String("subreddits", "", "List of comma separated subreddits to listen on")
+	searchText := flag.String("search", "", "Text to search for inside of post body for listening")
+	queue := flag.String("queue", "", "Main publishing queue, to be used in coordination with consumer queue")
+	flag.Parse()
 
-	var flags = []cli.Flag{
-		cli.StringFlag{
-			Name:  "subreddits",
-			Value: "",
-		},
-		cli.StringFlag{
-			Name:  "searchText",
-			Value: "",
-		},
-		cli.StringFlag{
-			Name:  "topic",
-			Value: "",
-		},
-	}
-	app.Commands = []cli.Command{
-		{
-			Name:  "events",
-			Usage: "Listen to specified search string from multiple subreddits then notify",
-			Flags: flags,
-			Action: func(c *cli.Context) error {
-				subreddits := strings.Split(c.String("subreddits"), ",")
-				events.NewEvents(config.BotAgentFile(), c.String("topic"), subreddits, c.String("searchText"))
-				return nil
-			},
-		},
-	}
-
-	err := app.Run(os.Args)
-	if err != nil {
-		panic(err)
-	}
+	subredditsList := strings.Split(*subreddits, ",")
+	events.NewEvents(config.BotAgentFile(), *queue, subredditsList, *searchText)
+	defer os.Exit(0)
 }

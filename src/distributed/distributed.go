@@ -4,29 +4,67 @@ package distributed
 import (
 	"fmt"
 
+	"github.com/dillonmabry/reddit-comments-util/src/config"
 	"github.com/dillonmabry/reddit-comments-util/src/logging"
-	MQTT "github.com/eclipse/paho.mqtt.golang"
+	"github.com/streadway/amqp"
 )
 
-// Client general for MQTT
+// Client general for AMQP
 type Client struct {
-	Client MQTT.Client
-	Topic  string
+	Channel *amqp.Channel
+	Queue   amqp.Queue
 }
 
-// NewDistributed create a distributed client to publish events to broker
-// brokerURL: broker to connect, topic: topic to publish to, handler: function handler for publishing
-func NewDistributed(brokerURL string, topic string, handler MQTT.MessageHandler) *Client {
-	logger := logging.NewLogger()
-	opts := MQTT.NewClientOptions().AddBroker(brokerURL)
-	opts.SetDefaultPublishHandler(handler)
+// PublishBody return publish object
+func PublishBody(data []byte) amqp.Publishing {
+	return amqp.Publishing{Body: data}
+}
 
-	client := MQTT.NewClient(opts)
-	if token := client.Connect(); token.Wait() && token.Error() != nil {
-		logger.Fatal("Could not connect publishing client")
-		return nil
+// NewDistributed create a distributed client for general use
+// brokerURL: broker to connect, queueName: queue to publish to
+func NewDistributed(brokerURL string, queueName string) *Client {
+	logger := logging.NewLogger()
+
+	conn, err := amqp.Dial(brokerURL)
+	if err != nil {
+		logger.Fatal(err)
 	}
-	logger.Info(fmt.Sprintf("Connected to broker service via topic: %s", topic))
-	distClient := Client{Client: client, Topic: topic}
+	ch, err := conn.Channel()
+	if err != nil {
+		logger.Fatal("Failed to open channel")
+	}
+
+	if err := ch.ExchangeDeclare(
+		config.DefaultExchange(), // name of the exchange
+		"fanout",                 // type
+		true,                     // durable
+		false,                    // delete when complete
+		false,                    // internal
+		false,                    // noWait
+		nil,                      // arguments
+	); err != nil {
+		logger.Fatal(fmt.Sprintf("Exchange: %s", err))
+	}
+
+	q, err := ch.QueueDeclare(
+		queueName, // name of the queue
+		true,      // durable
+		false,     // autoDelete
+		false,     // exclusive
+		false,     // noWait
+		nil,       // args table
+	)
+	if err := ch.QueueBind(
+		q.Name,                   // name of the queue
+		"",                       // binding key
+		config.DefaultExchange(), // source exchange
+		false,                    // noWait
+		nil,                      // arguments
+	); err != nil {
+		logger.Fatal(fmt.Sprintf("Queue Bind: %s", err))
+	}
+
+	distClient := Client{Channel: ch, Queue: q}
+	logger.Info(fmt.Sprintf("Connected to broker service via queue: %s", q.Name))
 	return &distClient
 }
