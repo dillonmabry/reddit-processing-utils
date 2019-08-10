@@ -1,1 +1,1 @@
-start go run src/consumer/exec/main.go --topic test
+start go run src/consumer/exec/main.go --queue test
