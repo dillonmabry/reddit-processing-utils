@@ -16,20 +16,6 @@ func SavePostMessage(postMessage *PostMessage) error {
 	return nil
 }
 
-// IsPostExist check if post exists via url
-func IsPostExist(url string) (bool, error) {
-	var exists bool
-	row := db.QueryRow(`SELECT EXISTS(SELECT 1 FROM posts WHERE url=$1)`, url)
-	err := row.Scan(&exists)
-	if err != nil {
-		return false, err
-	}
-	if exists != false {
-		return true, nil
-	}
-	return false, nil
-}
-
 // AllPosts get all the saved posts
 func AllPosts() ([]*PostMessage, error) {
 	rows, err := db.Query("SELECT * FROM posts")
