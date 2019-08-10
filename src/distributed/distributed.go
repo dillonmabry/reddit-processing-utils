@@ -1,4 +1,4 @@
-// Package distributed interactions with Mosquitto MQTT message broker services
+// Package distributed interactions with AMQP RabbitMQ
 package distributed
 
 import (

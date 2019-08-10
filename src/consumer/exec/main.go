@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"os"
 
 	"github.com/streadway/amqp"
 
@@ -67,5 +66,4 @@ func main() {
 
 	done := make(chan error)
 	handleMessages(msgs, done)
-	defer os.Exit(0)
 }
