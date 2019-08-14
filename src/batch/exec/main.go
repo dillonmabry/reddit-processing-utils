@@ -8,7 +8,7 @@ import (
 
 	"github.com/dillonmabry/reddit-comments-util/src/batch"
 	"github.com/dillonmabry/reddit-comments-util/src/config"
-	"github.com/dillonmabry/reddit-comments-util/src/fileutils"
+	fileutils "github.com/dillonmabry/reddit-comments-util/src/fileutils"
 	"github.com/turnage/graw/reddit"
 	"github.com/urfave/cli"
 )
@@ -16,9 +16,9 @@ import (
 // exportCommentsTxt exports multiple threads replies into single .txt
 // subreddit: subreddit, threads: threads to export together
 func exportCommentsTxt(subreddit string, threads []string) {
-	var wg sync.WaitGroup
 	bot := batch.NewBatch(config.BotAgentFile())
 
+	var wg sync.WaitGroup
 	c := make(chan reddit.Comment)
 	go fileutils.WriteTextOutput("testfile", c)
 	wg.Add(len(threads))
@@ -34,9 +34,9 @@ func exportCommentsTxt(subreddit string, threads []string) {
 // exportCommentsTxt exports multiple threads replies into single .txt
 // subreddit: subreddit, threads: threads to export together, searchPattern regexp pattern
 func exportCommentsCsv(subreddit string, threads []string, headers []string, searchPattern string) {
-	var wg sync.WaitGroup
 	bot := batch.NewBatch(config.BotAgentFile())
 
+	var wg sync.WaitGroup
 	c := make(chan []string)
 	go fileutils.WriteCsvOutput("testfile", headers, c)
 	wg.Add(len(threads))
@@ -63,15 +63,35 @@ func main() {
 			Name:  "threads",
 			Value: "",
 		},
+		cli.StringFlag{
+			Name:  "searchRegex",
+			Value: "",
+		},
+		cli.StringFlag{
+			Name:  "csvHeaders",
+			Value: "",
+		},
 	}
 	app.Commands = []cli.Command{
 		{
-			Name:  "batch",
+			Name:  "txt",
 			Usage: "Export multiple reddit threads to single .txt file",
 			Flags: flags,
 			Action: func(c *cli.Context) error {
 				threads := strings.Split(c.String("threads"), ",")
 				exportCommentsTxt(c.String("subreddit"), threads)
+				return nil
+			},
+		},
+		{
+			Name:  "csv",
+			Usage: "Export regex based search criteria to csv or multiple csvs for reddit threads",
+			Flags: flags,
+			Action: func(c *cli.Context) error {
+				threads := strings.Split(c.String("threads"), ",")
+				exportCommentsCsv(c.String("subreddit"), threads,
+					[]string{"Accepted", "Application Date", "Decision Date", "Education", "Test Scores", "Experience", "Recommendations", "Comments"},
+					`Status: (.*)\n\nApplication Date: (.*)\n\nDecision Date: (.*)\n\nEducation: (.*)\n\nTest Scores: (.*)\n\nExperience: (.*)\n\nRecommendations: (.*)\n\nComments: (.*)`)
 				return nil
 			},
 		},

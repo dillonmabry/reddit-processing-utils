@@ -45,6 +45,7 @@ func GetAllReplies(bot gwrap.Bot, thread string, c chan gwrap.Comment, wg *sync.
 func findMatches(regex *regexp.Regexp, text string, c chan []string) {
 	matches := regex.FindAllStringSubmatch(text, -1)
 	for m := range matches {
+		//fmt.Println([]string{matches[m][1]})
 		c <- []string{matches[m][1]}
 	}
 }

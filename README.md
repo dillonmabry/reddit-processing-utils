@@ -10,6 +10,7 @@ Wrapper for Reddit API including batch processing and events/broker services
 ## Install Instructions
 
 ## Run Instructions
+### Event Listener
 Modify/run .bat files as needed
 OR
 Run manually:
@@ -23,4 +24,11 @@ Consumer
 ```
 go run src/consumer/exec/main.go --queue <queue to consume per amqp>
 ```
+
+### Batch
+To export multiple subreddit threads into a single .txt format:
+```
+export GRAW_BOT_AGENT=localbot.agent && go run src/batch/exec/main.go txt --subreddit AskReddit --threads cpsvgv,cpvu5e
+```
+
 ## Tests
