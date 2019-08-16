@@ -9,7 +9,9 @@ Wrapper for Reddit API including batch processing and events/broker services
 
 ## Install Instructions
 
+
 ## Run Instructions
+### Event Listener (Requires RabbitMQ/PostGres setup)
 Modify/run .bat files as needed
 OR
 Run manually:
@@ -23,4 +25,28 @@ Consumer
 ```
 go run src/consumer/exec/main.go --queue <queue to consume per amqp>
 ```
+
+### Batch
+To export multiple subreddit threads based on a regex "form style" search into a single .csv format:
+```
+export GRAW_BOT_AGENT=localbot.agent && time go run src/batch/exec/main.go csv --subreddit OMSA --threads a73ni1,8m2anv --headers "Application Date,Decision Date,Education,Test Scores,Experience,Recommendations,Comments"
+```
+
+To export multiple subreddit threads into a single .txt format:
+```
+export GRAW_BOT_AGENT=localbot.agent && time go run src/batch/exec/main.go txt --subreddit OMSA --threads a73ni1,8m2anv
+```
+
+## Regex "Form Style" Search
+To use the regex search, a Reddit thread must have replies that can be searched/filtered.
+For example, the following "form" would work:
+```
+Application Date: 02/16/2019
+
+Status: Won!
+
+Comments: Hey!
+```
+Replace the <HEADER:> sections with the headers you need
+
 ## Tests
