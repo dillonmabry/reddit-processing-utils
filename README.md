@@ -8,10 +8,18 @@ Wrapper for Reddit API including batch processing and events/broker services
 - Setup broker interface to connect with and allow multiple topics to be processed
 
 ## Install Instructions
+1. Get:
 ```
 go get -u github.com/dillonmabry/reddit-processing-utils/...
 ```
-
+2. Create localbot.agent file with your corresponding Reddit credentials:
+```
+user_agent: "Reddit-Comments-Utils:<version> (by /u/<user>)"
+client_id: "<client_id>"
+client_secret: "<client_secret>"
+username: "<username>"
+password: "<password>"
+```
 ## Run Instructions
 ### Event Listener (Requires RabbitMQ/PostGres setup)
 Modify/run .bat files as needed
