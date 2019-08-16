@@ -8,7 +8,9 @@ Wrapper for Reddit API including batch processing and events/broker services
 - Setup broker interface to connect with and allow multiple topics to be processed
 
 ## Install Instructions
-
+```
+go get -u github.com/dillonmabry/reddit-processing-utils/...
+```
 
 ## Run Instructions
 ### Event Listener (Requires RabbitMQ/PostGres setup)
@@ -29,12 +31,12 @@ go run src/consumer/exec/main.go --queue <queue to consume per amqp>
 ### Batch
 To export multiple subreddit threads based on a regex "form style" search into a single .csv format:
 ```
-export GRAW_BOT_AGENT=localbot.agent && time go run src/batch/exec/main.go csv --subreddit OMSA --threads a73ni1,8m2anv --headers "Application Date,Decision Date,Education,Test Scores,Experience,Recommendations,Comments"
+export GRAW_BOT_AGENT=localbot.agent && go run src/batch/exec/main.go csv --subreddit OMSA --threads a73ni1,8m2anv --headers "Application Date,Decision Date,Education,Test Scores,Experience,Recommendations,Comments"
 ```
 
 To export multiple subreddit threads into a single .txt format:
 ```
-export GRAW_BOT_AGENT=localbot.agent && time go run src/batch/exec/main.go txt --subreddit OMSA --threads a73ni1,8m2anv
+export GRAW_BOT_AGENT=localbot.agent && go run src/batch/exec/main.go txt --subreddit OMSA --threads a73ni1,8m2anv
 ```
 
 ## Regex "Form Style" Search
