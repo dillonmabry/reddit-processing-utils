@@ -41,12 +41,15 @@ func GetAllReplies(bot gwrap.Bot, thread string, c chan gwrap.Comment, wg *sync.
 }
 
 // findMatches filters via regex into designated channel
-// regex: reference to regex compiler, text: text to match, c: channel
-func findMatches(regex *regexp.Regexp, text string, c chan []string) {
+// regex: reference to regex compiler, groupCount int number of capture groups, text: text to match, c: channel
+func findMatches(regex *regexp.Regexp, groupCount int, text string, c chan []string) {
 	matches := regex.FindAllStringSubmatch(text, -1)
 	for m := range matches {
-		//fmt.Println([]string{matches[m][1]})
-		c <- []string{matches[m][1]}
+		var groupMatches []string
+		for i := 1; i < groupCount; i++ {
+			groupMatches = append(groupMatches, matches[m][i])
+		}
+		c <- groupMatches
 	}
 }
 
@@ -64,9 +67,9 @@ func GetFilteredReplies(bot gwrap.Bot, thread string, c chan []string, searchPat
 
 	for _, comment := range harvest.Replies {
 		for _, comment := range comment.Replies {
-			findMatches(r, comment.Body, c)
+			findMatches(r, len(r.SubexpNames()), comment.Body, c)
 		}
-		findMatches(r, comment.Body, c)
+		findMatches(r, len(r.SubexpNames()), comment.Body, c)
 	}
 	defer wg.Done()
 }

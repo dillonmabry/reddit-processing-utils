@@ -8,7 +8,7 @@ import (
 
 	"github.com/dillonmabry/reddit-comments-util/src/batch"
 	"github.com/dillonmabry/reddit-comments-util/src/config"
-	fileutils "github.com/dillonmabry/reddit-comments-util/src/fileutils"
+	"github.com/dillonmabry/reddit-comments-util/src/fileutils"
 	"github.com/turnage/graw/reddit"
 	"github.com/urfave/cli"
 )
@@ -20,7 +20,8 @@ func exportCommentsTxt(subreddit string, threads []string) {
 
 	var wg sync.WaitGroup
 	c := make(chan reddit.Comment)
-	go fileutils.WriteTextOutput("testfile", c)
+	fname := strings.Join(threads[:], "_") + ".txt"
+	go fileutils.WriteTextOutput(fname, c)
 	wg.Add(len(threads))
 	for _, thread := range threads {
 		go func(thread string) {
@@ -38,13 +39,26 @@ func exportCommentsCsv(subreddit string, threads []string, headers []string, sea
 
 	var wg sync.WaitGroup
 	c := make(chan []string)
-	go fileutils.WriteCsvOutput("testfile", headers, c)
 	wg.Add(len(threads))
+
+	fname := strings.Join(threads[:], "_") + ".csv"
+	w, err := fileutils.NewCsvWriter(fname)
+	w.Write(headers)
+	defer w.Flush()
+
+	if err != nil {
+		panic(err)
+	}
 	for _, thread := range threads {
 		go func(thread string) {
 			batch.GetFilteredReplies(bot, fmt.Sprintf("/r/%s/comments/%s", subreddit, thread), c, searchPattern, &wg)
 		}(thread)
 	}
+	go func() { //For some reason this is blocking when not in a separate goroutine
+		for msg := range c {
+			w.Write(msg)
+		}
+	}()
 	wg.Wait()
 	close(c)
 }
@@ -64,11 +78,7 @@ func main() {
 			Value: "",
 		},
 		cli.StringFlag{
-			Name:  "searchRegex",
-			Value: "",
-		},
-		cli.StringFlag{
-			Name:  "csvHeaders",
+			Name:  "headers",
 			Value: "",
 		},
 	}
@@ -89,9 +99,9 @@ func main() {
 			Flags: flags,
 			Action: func(c *cli.Context) error {
 				threads := strings.Split(c.String("threads"), ",")
-				exportCommentsCsv(c.String("subreddit"), threads,
-					[]string{"Accepted", "Application Date", "Decision Date", "Education", "Test Scores", "Experience", "Recommendations", "Comments"},
-					`Status: (.*)\n\nApplication Date: (.*)\n\nDecision Date: (.*)\n\nEducation: (.*)\n\nTest Scores: (.*)\n\nExperience: (.*)\n\nRecommendations: (.*)\n\nComments: (.*)`)
+				headers := strings.Split(c.String("headers"), ",")
+				searchPattern := fileutils.HeadersToRegex(headers)
+				exportCommentsCsv(c.String("subreddit"), threads, headers, searchPattern)
 				return nil
 			},
 		},

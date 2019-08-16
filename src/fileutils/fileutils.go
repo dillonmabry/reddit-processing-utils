@@ -4,6 +4,7 @@ package fileutils
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/turnage/graw/reddit"
 )
@@ -25,18 +26,16 @@ func WriteTextOutput(fileName string, c chan reddit.Comment) {
 	}
 }
 
-// WriteCsvOutput to write csv output based on a channel to a file
-// fileName: name of write to write to, c: channel
-func WriteCsvOutput(fileName string, headers []string, c chan []string) {
-	fname := fmt.Sprintf("%s%s", fileName, ".csv")
-	w, err := NewCsvWriter(fname)
-	if err != nil {
-		panic(err)
+// HeadersToRegex simple function to convert a slice of string headers to a regex
+/* headers: slice of headers to use in a "form style" regex, for example:
+Headers: HEADER1,HEADER2,HEADER3
+Regex returned: `HEADER1: (.*)\n\nHEADER2: (.*)\n\HEADER3: (.*)`
+*/
+func HeadersToRegex(headers []string) string {
+	var b strings.Builder
+	for _, header := range headers {
+		fmt.Fprintf(&b, "%s: (.*)\\n\\n", header)
 	}
-	w.Write(headers)
-
-	for msg := range c {
-		w.Write(msg)
-	}
-	defer w.Flush()
+	regString := b.String()
+	return regString[:len(regString)-4] // Remove last newline char for form ending
 }
