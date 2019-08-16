@@ -32,8 +32,8 @@ func exportCommentsTxt(subreddit string, threads []string) {
 	close(c)
 }
 
-// exportCommentsTxt exports multiple threads replies into single .txt
-// subreddit: subreddit, threads: threads to export together, searchPattern regexp pattern
+// exportCommentsTxt exports multiple threads replies into single .csv
+// subreddit: subreddit, threads: threads to export together, headers: csv headers, searchPattern regexp pattern
 func exportCommentsCsv(subreddit string, threads []string, headers []string, searchPattern string) {
 	bot := batch.NewBatch(config.BotAgentFile())
 
