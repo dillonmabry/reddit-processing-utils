@@ -27,14 +27,20 @@ go run src/consumer/exec/main.go --queue <queue to consume per amqp>
 ```
 
 ### Batch
-To export multiple subreddit threads based on a regex "form style" search into a single .csv format:
+To export multiple subreddit threads based on a regex "form style" search into *multiple* .csv files:
 ```
-export GRAW_BOT_AGENT=localbot.agent && time go run src/batch/exec/main.go csv --subreddit OMSA --threads a73ni1,8m2anv --headers "Application Date,Decision Date,Education,Test Scores,Experience,Recommendations,Comments"
+export GRAW_BOT_AGENT=localbot.agent && go run src/batch/exec/main.go csv --subreddit OMSA --threads a73ni1,8m2anv --headers "Application Date,Decision Date,Education,Test Scores,Experience,Recommendations,Comments"
+```
+
+To export multiple subreddit threads based on a regex "form style" search into a *single* .csv format:
+(Notice the -m merge flag)
+```
+export GRAW_BOT_AGENT=localbot.agent && go run src/batch/exec/main.go csv --subreddit OMSA --threads a73ni1,8m2anv --headers "Application Date,Decision Date,Education,Test Scores,Experience,Recommendations,Comments" -m
 ```
 
 To export multiple subreddit threads into a single .txt format:
 ```
-export GRAW_BOT_AGENT=localbot.agent && time go run src/batch/exec/main.go txt --subreddit OMSA --threads a73ni1,8m2anv
+export GRAW_BOT_AGENT=localbot.agent && go run src/batch/exec/main.go txt --subreddit OMSA --threads a73ni1,8m2anv
 ```
 
 ## Regex "Form Style" Search
