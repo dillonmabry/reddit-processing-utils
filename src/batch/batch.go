@@ -16,7 +16,7 @@ func NewBatch(botAgentFile string) gwrap.Bot {
 	logger := logging.NewLogger()
 	bot, err := reddit.NewBotFromAgentFile(botAgentFile, 0)
 	if err != nil {
-		logger.Error("Could not create bot agent from file")
+		logger.Error("Could not create bot agent from file, configuration is incorrect or file not found")
 		panic(err)
 	}
 	logger.Info("Started bot for batch processing")
