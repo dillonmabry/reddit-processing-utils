@@ -22,7 +22,7 @@ password: "<password>"
 ```
 ## Run Instructions
 ### Event Listener (Requires RabbitMQ/PostGres setup)
-Modify/run .bat files as needed
+Modify/run .bat files as needed with default settings
 OR
 Run manually:
 
@@ -36,10 +36,21 @@ Consumer
 go run src/consumer/exec/main.go --queue <queue to consume per amqp>
 ```
 
+Can set environment variables as needed:
+- GRAW_BOT_AGENT: location of your graw config
+- AMQP_DEFAULT_BROKER: your broker url amqp://<user>:<pass>@localhost:5672
+- AMQP_DEFAULT_EXCHANGE: amqp exchange
+
 ### Batch
-To export multiple subreddit threads based on a regex "form style" search into a single .csv format:
+To export multiple subreddit threads based on a regex "form style" search into *multiple* .csv files:
 ```
 export GRAW_BOT_AGENT=localbot.agent && go run src/batch/exec/main.go csv --subreddit OMSA --threads a73ni1,8m2anv --headers "Application Date,Decision Date,Education,Test Scores,Experience,Recommendations,Comments"
+```
+
+To export multiple subreddit threads based on a regex "form style" search into a *single* .csv format:
+(Notice the -m merge flag)
+```
+export GRAW_BOT_AGENT=localbot.agent && go run src/batch/exec/main.go csv --subreddit OMSA --threads a73ni1,8m2anv --headers "Application Date,Decision Date,Education,Test Scores,Experience,Recommendations,Comments" -m
 ```
 
 To export multiple subreddit threads into a single .txt format:
