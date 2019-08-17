@@ -12,7 +12,7 @@ Wrapper for Reddit API including batch processing and events/broker services
 
 ## Run Instructions
 ### Event Listener (Requires RabbitMQ/PostGres setup)
-Modify/run .bat files as needed
+Modify/run .bat files as needed with default settings
 OR
 Run manually:
 
@@ -25,6 +25,11 @@ Consumer
 ```
 go run src/consumer/exec/main.go --queue <queue to consume per amqp>
 ```
+
+Can set environment variables as needed:
+- GRAW_BOT_AGENT: location of your graw config
+- AMQP_DEFAULT_BROKER: your broker url amqp://<user>:<pass>@localhost:5672
+- AMQP_DEFAULT_EXCHANGE: amqp exchange
 
 ### Batch
 To export multiple subreddit threads based on a regex "form style" search into *multiple* .csv files:
