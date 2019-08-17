@@ -32,35 +32,44 @@ func exportCommentsTxt(subreddit string, threads []string) {
 	close(c)
 }
 
-// exportCommentsTxt exports multiple threads replies into single .txt
-// subreddit: subreddit, threads: threads to export together, searchPattern regexp pattern
-func exportCommentsCsv(subreddit string, threads []string, headers []string, searchPattern string) {
+// exportCommentsCsvMerged exports multiple threads replies into single .csv
+// subreddit: subreddit, threads: threads to export together, regex regexp pattern
+func exportCommentsCsvMerged(subreddit string, threads []string, headers []string, regex string) {
 	bot := batch.NewBatch(config.BotAgentFile())
-
-	var wg sync.WaitGroup
-	c := make(chan []string)
-	wg.Add(len(threads))
 
 	fname := strings.Join(threads[:], "_") + ".csv"
 	w, err := fileutils.NewCsvWriter(fname)
-	w.Write(headers)
-	defer w.Flush()
-
 	if err != nil {
 		panic(err)
 	}
+	w.Write(headers)
+	defer w.Flush()
+
 	for _, thread := range threads {
-		go func(thread string) {
-			batch.GetFilteredReplies(bot, fmt.Sprintf("/r/%s/comments/%s", subreddit, thread), c, searchPattern, &wg)
-		}(thread)
-	}
-	go func() { //For some reason this is blocking when not in a separate goroutine
-		for msg := range c {
+		c := make(chan []string)
+		for msg := range batch.RepliesProducerMerged(bot, subreddit, thread, regex, c) {
 			w.Write(msg)
 		}
-	}()
-	wg.Wait()
-	close(c)
+	}
+}
+
+// exportCommentsCsv exports multiple threads replies into multiple .csv files
+// subreddit: subreddit, threads: threads to export together, regex regexp pattern
+func exportCommentsCsv(subreddit string, threads []string, headers []string, regex string) {
+	bot := batch.NewBatch(config.BotAgentFile())
+
+	for _, thread := range threads {
+		fname := thread + ".csv"
+		w, err := fileutils.NewCsvWriter(fname)
+		if err != nil {
+			panic(err)
+		}
+		w.Write(headers)
+		defer w.Flush()
+		for msg := range batch.RepliesProducer(bot, subreddit, thread, regex) {
+			w.Write(msg)
+		}
+	}
 }
 
 func main() {
@@ -72,14 +81,21 @@ func main() {
 		cli.StringFlag{
 			Name:  "subreddit",
 			Value: "",
+			Usage: "Subreddit group",
 		},
 		cli.StringFlag{
 			Name:  "threads",
 			Value: "",
+			Usage: "Reddit threads comma separated, ie: thread1,thread2",
 		},
 		cli.StringFlag{
 			Name:  "headers",
 			Value: "",
+			Usage: `Csv headers which match the "form" style regex search`,
+		},
+		cli.BoolFlag{
+			Name:  "m",
+			Usage: "Indicates whether to merge all csv threads into a single file",
 		},
 	}
 	app.Commands = []cli.Command{
@@ -98,10 +114,16 @@ func main() {
 			Usage: "Export regex based search criteria to csv or multiple csvs for reddit threads",
 			Flags: flags,
 			Action: func(c *cli.Context) error {
+				subreddit := c.String("subreddit")
 				threads := strings.Split(c.String("threads"), ",")
 				headers := strings.Split(c.String("headers"), ",")
 				searchPattern := fileutils.HeadersToRegex(headers)
-				exportCommentsCsv(c.String("subreddit"), threads, headers, searchPattern)
+				isMerge := c.Bool("m")
+				if isMerge {
+					exportCommentsCsvMerged(subreddit, threads, headers, searchPattern)
+					return nil
+				}
+				exportCommentsCsv(subreddit, threads, headers, searchPattern)
 				return nil
 			},
 		},

@@ -2,6 +2,7 @@
 package batch
 
 import (
+	"fmt"
 	"regexp"
 	"sync"
 
@@ -53,14 +54,14 @@ func findMatches(regex *regexp.Regexp, groupCount int, text string, c chan []str
 	}
 }
 
-// GetFilteredReplies to get all comments of a particular thread
-// bot: reddit Bot, thread: thread, c: channel, searchPattern regexp, wg WaitGroup ref
-func GetFilteredReplies(bot gwrap.Bot, thread string, c chan []string, searchPattern string, wg *sync.WaitGroup) {
+// getFilteredReplies to get all comments of a particular thread
+// bot: reddit Bot, thread: thread, c: channel, regex regexp
+func getFilteredReplies(bot gwrap.Bot, thread string, c chan []string, regex string) {
 	harvest, err := bot.Thread(thread)
 	if err != nil {
 		panic(err)
 	}
-	r, err := regexp.Compile("(?i)" + searchPattern)
+	r, err := regexp.Compile("(?i)" + regex)
 	if err != nil {
 		panic(err)
 	}
@@ -71,5 +72,26 @@ func GetFilteredReplies(bot gwrap.Bot, thread string, c chan []string, searchPat
 		}
 		findMatches(r, len(r.SubexpNames()), comment.Body, c)
 	}
-	defer wg.Done()
+}
+
+// RepliesProducer creates a goroutine to return a receiving channel of reddit replies to a thread
+// bot: reddit bot, subreddit: subreddit, thread: thread, regex: regex search pattern form based
+func RepliesProducer(bot gwrap.Bot, subreddit string, thread string, regex string) <-chan []string {
+	out := make(chan []string)
+	go func() {
+		getFilteredReplies(bot, fmt.Sprintf("/r/%s/comments/%s", subreddit, thread), out, regex)
+		close(out)
+	}()
+	return out
+}
+
+// RepliesProducerMerged creates a goroutine to return a receiving channel of reddit replies to a thread
+// Uses a shared channel to merge results
+// bot: reddit bot, subreddit: subreddit, thread: thread, regex: regex search pattern form based
+func RepliesProducerMerged(bot gwrap.Bot, subreddit string, thread string, regex string, c chan []string) <-chan []string {
+	go func(thread string) {
+		getFilteredReplies(bot, fmt.Sprintf("/r/%s/comments/%s", subreddit, thread), c, regex)
+		close(c)
+	}(thread)
+	return c
 }
