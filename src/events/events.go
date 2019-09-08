@@ -9,10 +9,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/dillonmabry/reddit-comments-util/src/config"
-	"github.com/dillonmabry/reddit-comments-util/src/datamanager"
-	"github.com/dillonmabry/reddit-comments-util/src/distributed"
-	"github.com/dillonmabry/reddit-comments-util/src/logging"
+	"github.com/dillonmabry/reddit-processing-utils/src/config"
+	"github.com/dillonmabry/reddit-processing-utils/src/datamanager"
+	"github.com/dillonmabry/reddit-processing-utils/src/distributed"
+	"github.com/dillonmabry/reddit-processing-utils/src/logging"
 	"github.com/turnage/graw"
 	"github.com/turnage/graw/reddit"
 )

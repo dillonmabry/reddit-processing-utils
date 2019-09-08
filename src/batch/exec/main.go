@@ -6,9 +6,9 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/dillonmabry/reddit-comments-util/src/batch"
-	"github.com/dillonmabry/reddit-comments-util/src/config"
-	"github.com/dillonmabry/reddit-comments-util/src/fileutils"
+	"github.com/dillonmabry/reddit-processing-utils/src/batch"
+	"github.com/dillonmabry/reddit-processing-utils/src/config"
+	"github.com/dillonmabry/reddit-processing-utils/src/fileutils"
 	"github.com/turnage/graw/reddit"
 	"github.com/urfave/cli"
 )

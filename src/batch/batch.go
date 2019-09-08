@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"sync"
 
-	"github.com/dillonmabry/reddit-comments-util/src/logging"
+	"github.com/dillonmabry/reddit-processing-utils/src/logging"
 	"github.com/turnage/graw/reddit"
 	gwrap "github.com/turnage/graw/reddit"
 )
