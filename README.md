@@ -83,4 +83,5 @@ docker-compose build
 docker-compose up
 ```
 The services for rabbitmq, postgres, consumer, and producer builds should initialize
+
 **Obviously you should update your credentials using secrets and not use "admin:admin" for everything**
