@@ -40,6 +40,7 @@ Can set environment variables as needed:
 - GRAW_BOT_AGENT: location of your graw config
 - AMQP_DEFAULT_BROKER: your broker url amqp://<user>:<pass>@localhost:5672
 - AMQP_DEFAULT_EXCHANGE: amqp exchange
+- POSTGRES_CONN: Postgres connection info
 
 ### Batch
 To export multiple subreddit threads based on a regex "form style" search into *multiple* .csv files:
@@ -71,3 +72,15 @@ Comments: Hey!
 Replace the <HEADER:> sections with the headers you need
 
 ## Tests
+
+## Docker Compose
+
+To use docker compose:
+1. Create your localbot.agent file inside of src/events/exec/
+2. Run:
+```
+docker-compose build
+docker-compose up
+```
+The services for rabbitmq, postgres, consumer, and producer builds should initialize
+**Obviously you should update your credentials using secrets and not use "admin:admin" for everything**
