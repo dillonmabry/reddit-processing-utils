@@ -5,13 +5,13 @@ services:
     image: postgres:latest
     restart: always
     ports:
-      - 5555:5432
+      - 5432:5432
     environment:
       POSTGRES_DB: 'reddit'
       POSTGRES_USER: 'admin'
       POSTGRES_PASSWORD: 'admin'
     volumes:
-      - database_data:/var/lib/postgresql/data
+      - ./resources/init.sql:/docker-entrypoint-initdb.d/init.sql
 
   rabbit:
     image: rabbitmq:3-management
@@ -53,7 +53,3 @@ services:
       - 443:443
     depends_on:
       - rabbit
-
-volumes:
-  database_data:
-    driver: local
