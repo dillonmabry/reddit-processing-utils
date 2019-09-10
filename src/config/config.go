@@ -7,7 +7,7 @@ import (
 
 // README: Edit your default exchanges if needed
 const defaultBotFile = "localbot.agent"
-const defaultBroker = "amqp://admin:admin@192.168.44.128:5672"
+const defaultBroker = "amqp://admin:admin@localhost:5672"
 const defaultExchange = "amq.fanout"
 const defaultDbConn = "host=localhost port=5432 user=admin password=admin dbname=reddit sslmode=disable"
 

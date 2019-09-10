@@ -1,16 +1,18 @@
---DB Seed
+-- Db
 CREATE DATABASE reddit;
 
---Admin Service Acct
+-- Admin service account
 CREATE USER admin WITH ENCRYPTED PASSWORD 'admin';
 GRANT ALL PRIVILEGES ON DATABASE reddit TO admin;
-GRANT ALL PRIVILEGES ON TABLE posts TO admin;
-GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO admin;
-ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT USAGE, SELECT ON SEQUENCES TO admin;
 
---Reddit posts
-CREATE TABLE posts (
+-- Reddit Posts
+CREATE TABLE IF NOT EXISTS posts (
     id serial primary key,
     url varchar(500),
     text text
 )
+
+-- Admin service account
+GRANT ALL PRIVILEGES ON TABLE posts TO admin;
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO admin;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT USAGE, SELECT ON SEQUENCES TO admin;
