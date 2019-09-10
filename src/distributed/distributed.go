@@ -4,8 +4,8 @@ package distributed
 import (
 	"fmt"
 
-	"github.com/dillonmabry/reddit-comments-util/src/config"
-	"github.com/dillonmabry/reddit-comments-util/src/logging"
+	"github.com/dillonmabry/reddit-processing-utils/src/config"
+	"github.com/dillonmabry/reddit-processing-utils/src/logging"
 	"github.com/streadway/amqp"
 )
 

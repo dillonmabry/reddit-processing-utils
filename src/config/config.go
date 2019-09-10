@@ -7,8 +7,9 @@ import (
 
 // README: Edit your default exchanges if needed
 const defaultBotFile = "localbot.agent"
-const defaultBroker = "amqp://admin:admin@192.168.1.113:5672"
+const defaultBroker = "amqp://admin:admin@localhost:5672"
 const defaultExchange = "amq.fanout"
+const defaultDbConn = "host=localhost port=5432 user=admin password=admin dbname=reddit sslmode=disable"
 
 // BotAgentFile to return
 func BotAgentFile() string {
@@ -35,4 +36,13 @@ func DefaultExchange() string {
 		return defaultExchange
 	}
 	return exchangeName
+}
+
+//DefaultDb default database for Postgres
+func DefaultDb() string {
+	dbConn := os.Getenv("POSTGRES_CONN")
+	if dbConn == "" {
+		return defaultDbConn
+	}
+	return dbConn
 }

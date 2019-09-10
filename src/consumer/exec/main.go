@@ -7,10 +7,10 @@ import (
 
 	"github.com/streadway/amqp"
 
-	"github.com/dillonmabry/reddit-comments-util/src/config"
-	"github.com/dillonmabry/reddit-comments-util/src/datamanager"
-	"github.com/dillonmabry/reddit-comments-util/src/distributed"
-	"github.com/dillonmabry/reddit-comments-util/src/logging"
+	"github.com/dillonmabry/reddit-processing-utils/src/config"
+	"github.com/dillonmabry/reddit-processing-utils/src/datamanager"
+	"github.com/dillonmabry/reddit-processing-utils/src/distributed"
+	"github.com/dillonmabry/reddit-processing-utils/src/logging"
 )
 
 var logger = logging.NewLogger()
@@ -43,7 +43,7 @@ func handleMessages(msgs <-chan amqp.Delivery, done chan error) {
 }
 
 func init() {
-	datamanager.InitDB("host=localhost port=5432 user=admin password=admin dbname=reddit sslmode=disable")
+	datamanager.InitDB(config.DefaultDb())
 }
 
 func main() {

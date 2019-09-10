@@ -4,8 +4,8 @@ import (
 	"flag"
 	"strings"
 
-	"github.com/dillonmabry/reddit-comments-util/src/config"
-	"github.com/dillonmabry/reddit-comments-util/src/events"
+	"github.com/dillonmabry/reddit-processing-utils/src/config"
+	"github.com/dillonmabry/reddit-processing-utils/src/events"
 )
 
 func main() {

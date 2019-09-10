@@ -5,7 +5,7 @@ import (
 
 	_ "github.com/lib/pq"
 
-	"github.com/dillonmabry/reddit-comments-util/src/logging"
+	"github.com/dillonmabry/reddit-processing-utils/src/logging"
 )
 
 var db *sql.DB
