@@ -1,4 +1,5 @@
 # Reddit Processing Utils
+[![Build Status](https://goreportcard.com/badge/github.com/dillonmabry/reddit-processing-utils)](https://goreportcard.com/report/github.com/dillonmabry/reddit-processing-utils)
 
 Wrapper for Reddit API including batch processing and events/broker services
 
